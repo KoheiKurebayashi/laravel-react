@@ -1,0 +1,19 @@
+version: '3'
+
+services:
+  # laravel側の設定
+  php:
+    container_name: 'php'
+    # Dockerfileがあるパス
+    image: ./docker/php
+    # volumesは、どこの位置にディレクトリをマウントさせるか決めること
+    volumes:
+      - ./server:/var/www
+  nginx:
+    image: nginx
+    container_name: nginx
+    
+  
+  db:
+  
+  
