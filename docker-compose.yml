@@ -1,19 +1,56 @@
 version: '3'
 
 services:
+  # react側の設定
+  front: 
+    container_name: front
+    build: 
+      context: .
+      dockerfile: ./docker/front/Dockerfile
+    volumes:
+      - ./front:/usr/src/app
+    ports:
+      - "3001:3000"
+    command: sh -c "yarn start"
+    depends_on: 
+      - api
+    stdin_open: true 
+
   # laravel側の設定
-  php:
-    container_name: 'php'
+  api:
+    container_name: 'api'
     # Dockerfileがあるパス
-    image: ./docker/php
+    build: ./docker/php
     # volumesは、どこの位置にディレクトリをマウントさせるか決めること
     volumes:
-      - ./server:/var/www
+      - ./api:/var/www
+    command:
+      bash -c "php artisan serve --host=0.0.0.0 --port=8000"
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./api/.env
+    depends_on:
+      - db
   nginx:
     image: nginx
     container_name: nginx
-    
-  
+    ports:
+      - 80:80
+    volumes:
+      - ./api:/var/www
+      - ./docker/nginx/default.conf:/etc/conf.d/default.conf
+    depends_on:
+      - api
   db:
-  
+    image: mysql:5.7
+    container_name: mysql
+    ports:
+      -  "3306:3306"
+    volumes:
+      #-  ./docker/mysql/sql:/var/lib/mysql
+      -  ./docker/mysql/my_conf:/etc/mysql/conf.d
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: laravel-react
   
